@@ -1,0 +1,46 @@
+# remove <none>:<none>
+docker rmi $(docker images -f "dangling=true" -q) -f
+
+# Stop & Remove All Docker Containers
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+
+# remove every images
+docker rmi $(docker images -q)
+
+# remove every volume
+docker volume rm $(docker volume ls -q)
+
+# run once (clean up)
+docker run -it --rm python:3.6-alpine python
+
+# Build from bo_py
+docker build -t bo_django:1.11 -f ../Dockerfile .
+
+# with only requirements installed
+# this calls python
+docker run -it --rm --name py_shell bo_django:1.11
+docker run -d --name py_shell bo_django:1.11
+
+docker run -it --rm --user "$(id -u):$(id -g)" -v "$PWD":/usr/src/app -w /usr/src/app django django-admin.py startproject hello_world_django
+docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp python:3 python your-daemon-or-script.py
+
+docker run -it --rm --name startcmd -v "$PWD":/mytmp -w /mytmp bo_django:1.11 django-admin.py startproject hello_world_django .
+
+docker run -it --rm -p 127.0.0.1:80:8080/tcp --name testserver -v "$PWD":/test -w /test bo_django:1.11 python manage.py runserver
+docker run -it --rm -p 127.0.0.1:8000:8000/tcp --name testserver -v "$PWD":/test -w /test bo_django:1.11 python manage.py runserver 0.0.0.0:8000
+
+# run a command in a running container
+docker exec -it py_shell ip addr show eth0
+
+# run a cloud-sql-proxy through Docker
+
+docker run \
+  -v ~/Downloads/sql-proxy-sa-e58605909e53.json:/config \
+  -p 127.0.0.1:3306:3306 \
+  gcr.io/cloudsql-docker/gce-proxy:1.12 /cloud_sql_proxy \
+  -instances=instan_ceconnection_name=tcp:0.0.0.0:3306 \
+  -credential_file=/config
+
+ docker-compose -f examples/deployment/docker-compose-services-proxy.yml stop
+ docker-compose -f examples/deployment/docker-compose-services-proxy.yml down --volume
