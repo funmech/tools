@@ -1,0 +1,23 @@
+# check basic configurations of gcloud set up
+gcloud config configurations list
+
+# Set up a default project
+gcloud config set project your-project
+
+
+# set up a service account and grant project/owner role
+gcloud iam service-accounts create [NAME]
+gcloud projects add-iam-policy-binding [PROJECT_ID] --member "serviceAccount:[NAME]@[PROJECT_ID].iam.gserviceaccount.com" --role "roles/owner"
+gcloud iam service-accounts keys create [FILE_NAME].json --iam-account [NAME]@[PROJECT_ID].iam.gserviceaccount.com
+
+# set up service account
+gcloud auth  activate-service-account --key-file ~/path/key.json
+
+# check what account is active
+gcloue auth list
+
+# switch to an account `ACCOUNT`
+gcloud config set account `ACCOUNT`
+
+# check compute instances
+gcloud compute instances list
