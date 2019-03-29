@@ -1,0 +1,29 @@
+# Create an encrypted Private Key with DES in ede cbc mode (168 bit key)
+openssl genrsa -des3 -out domain.key 2048
+
+# Verify a Private Key
+openssl rsa -check -in domain.key
+
+# generate private key and signed public key in one command
+# or with -nodes to disable encrypt, private.key is in PEM format too
+openssl req -x509 -newkey rsa:2048 -keyout private.key -out public.pem -days 365
+
+# generate a public key, not a cert
+# -----BEGIN PUBLIC KEY-----
+openssl rsa -in domain.key -pubout -out public.pem
+
+# get https://foodtrust.au.auth0.com/.well-known/jwks.json
+# extract keys[0]['x5c'][0]
+# save to a text file between below two lines:
+# -----BEGIN CERTIFICATE-----
+# -----END CERTIFICATE-----
+# needs to have empty last line
+# the extracted keys[0]['x5c'][0] needs to be formated to fit
+# line width of 65
+# in vim
+:set formatprg=fold\ -w\ 64
+gg              # Go to beginning of file.
+gq              # Format until...
+G               # End of file.
+:wq f.pem
+openssl x509 -in f.pem -text -noout
