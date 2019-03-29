@@ -1,0 +1,17 @@
+# check basic configurations of gcloud set up
+gcloud config configurations list
+
+# Set up a default project
+gcloud config set project your-project
+
+# set up service account
+gcloud auth  activate-service-account --key-file ~/path/key.json
+
+# check what account is active
+gcloue auth list
+
+# switch to an account `ACCOUNT`
+gcloud config set account `ACCOUNT`
+
+# check compute instances
+gcloud compute instances list
