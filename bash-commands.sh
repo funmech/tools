@@ -26,3 +26,10 @@ sed -r '/db.ForeignKey(/{n;s/\"([\w_])\./\1hi/}' orm_bank_accounts.py
 
 # multiline search with awk for not containing v2
 awk "/db.ForeignKey/,/column/" orm_*.py | grep -v v2
+
+
+# https://blog.mozilla.org/webdev/2015/10/27/eradicating-those-nasty-pyc-files/
+find . -name '*.pyc' -delete
+
+# side note: to prevent pyc, run
+export PYTHONDONTWRITEBYTECODE=1
