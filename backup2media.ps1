@@ -1,12 +1,36 @@
-﻿# Install help files locally and ignore errors because MS ignores to maintain them
+﻿<#
+  .Synopsis
+    backup files to CD or DVD
+  .Description
+    This function copies files from $Path to working directories based on the $Size of media is used.
+    The default working directory is $HOME\Downloads, and $Size is 470MB (int32) for CD and
+    4.7GB for DVD (double).
+  .Example
+    Backup-to-Media some\path -Size 4.7GB
+#>
+
+# Install help files locally and ignore errors because MS ignores to maintain them
 # Update-Help  -Force -Ea 0
 
+# Start a PS sesssion in Unrestricted mode
+# PowerShell.exe –ExecutionPolicy Unrestricted
+# Set other execution policies?
+# Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+# Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+
 Get-ChildItem -Path C:\Users\Public\Pictures\IMG_20180717_104917.jpg | select -property PSIsContainer
+
+
+$LIMIT = 4MB
+$TopDir = $HOME + "\Downloads"
+cd $TopDir
+
+Get-ChildItem -Path $TopDir\IMG_20180717_104917.jpg | select -property PSIsContainer
 
 # check what we have here:
 Get-ChildItem -Path C:\Users\Public\Pictures | Measure-Object -property length -sum
 
-Get-ChildItem -Path C:\Users\Public\Pictures |
+Get-ChildItem -Path $TopDir |
     Where-Object PSIsContainer -eq $false
     Sort-Object -Property LastWriteTime |
     Format-Table -Property Name, Length
@@ -81,3 +105,46 @@ Remove-Item -Path C:\temp\DeleteMe -Recurse
 
 # Reading text from file
 # PS> Get-Content -Path C:\boot.ini
+
+function Get-Files {
+<#
+  .Synopsis
+    Get files from a location in total close to a size
+  .Description
+    This function gets files from $Path whose total size is no greater than given $Size
+  .Example
+    Get-Files some\path -Size 4.7GB
+#>
+    param(
+        [String]$Path = $HOME + "\Downloads",
+        $Size = 470MB
+    )
+
+    Write-Host "Source path =", $Path, ", Size =", $Size
+
+    $files = Get-ChildItem -Path $Path | 
+        Where-Object PSIsContainer -eq $false
+        Sort-Object -Property LastWriteTime
+
+    ForEach ($f in $files) {
+        $total += $f.length
+        $count += 1
+        if ($total -gt $Size) {
+            $total -= $f.length
+            $count--
+            break
+        } elseif ($total -eq $Size) {
+            Write-Host $f, $f.Length 
+            break
+        } else {
+            Write-Host $f, $f.Length
+        }
+    }
+    Write-Host ($count.ToString() + " files, in total = " + ($total/1MB).ToString() + "MB to be backed up")
+
+    # To check, run this and do calculation with the csv
+    # .\funmech-tools\Backup-to-Media -Size 40MB | Select-Object Name, Length | Export-Csv check.csv
+    # Here 1KB = 1024B
+
+    return $files | Select-Object -First $count
+}
