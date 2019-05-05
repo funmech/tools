@@ -117,10 +117,11 @@ function Get-Files {
 #>
     param(
         [String]$Path = $HOME + "\Downloads",
-        $Size = 470MB
+        $Size = 470MB,
+        [int]$DiskNoSeek = 1
     )
 
-    Write-Host "Source path =", $Path, ", Size =", $Size
+    Write-Host "Source path =", $Path, ", size of media for backup =", $Size
 
     $files = Get-ChildItem -Path $Path | 
         Where-Object PSIsContainer -eq $false
@@ -174,4 +175,10 @@ function Copy-Files {
     $Files | ForEach-Object { 
         Copy-Item -Path $_ -Destination $TargetPath -Force
     }
+}
+
+function Tees {
+    param(
+        [int]$i=1)
+    Write-Host -ForegroundColor Cyan $i
 }
