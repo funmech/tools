@@ -146,5 +146,32 @@ function Get-Files {
     # .\funmech-tools\Backup-to-Media -Size 40MB | Select-Object Name, Length | Export-Csv check.csv
     # Here 1KB = 1024B
 
-    return $files | Select-Object -First $count
+    Return $files | Select-Object -First $count
+}
+
+function Copy-Files {
+<#
+  .Synopsis
+    Copy a list of files to a location
+#>
+    param(
+        [String]$TargetPath,
+        [Parameter(Mandatory=$True)]$Files
+    )
+    if (Test-Path $TargetPath) {
+        Write-Error ($TargetPath + " exist!") -Category ResourceExists
+        Write-Host "To retify the above exception, please chooce another location or re-write code to allow over-write." -ForegroundColor Green
+        Return
+    }
+
+    if ($Files.Count -eq 0) {
+        Write-Warning "No files was received to process"
+        Return
+    }
+
+    // Create a new folder
+    New-Item -Path $TargetPath -ItemType Directory
+    $Files | ForEach-Object { 
+        Copy-Item -Path $_ -Destination $TargetPath -Force
+    }
 }
