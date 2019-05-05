@@ -127,7 +127,8 @@ function Get-Files {
         Where-Object PSIsContainer -eq $false
         Sort-Object -Property LastWriteTime
 
-    ForEach ($f in $files) {
+    1..$files.Count | ForEach-Object {
+        $f = $files[$_]
         $total += $f.length
         $count += 1
         if ($total -gt $Size) {
