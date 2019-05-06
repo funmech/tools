@@ -121,37 +121,42 @@ function Get-Files {
         [int]$DiskNoSeek = 1
     )
 
-    Write-Host "Source path =", $Path, ", size of media for backup =", $Size
+    Write-Host "Source path =", $Path, ", size of media for backup =", $Size -ForegroundColor Yellow
 
     $files = Get-ChildItem -Path $Path | 
         Where-Object PSIsContainer -eq $false
         Sort-Object -Property LastWriteTime
 
+    $total = 0
     $maxIndx = $files.Count - 1
+    $stack = @()
 
     0..$maxIndx | ForEach-Object {
         $f = $files[$_]
+        Write-Host "\t", $f, $f.Length
+
         $total += $f.length
         if ($_ -lt $maxIndx) {
             $nextTotal = $total + $files[$_ + 1].Length
         } else {
             $nextTotal = 0
         }
-        $count += 1
-        if ($total -ge $Size -or $nextTotal -gt $Size ) {
-            Write-Host $count, $f, $f.Length 
-            break
-        } else {
-            Write-Host $count, $f, $f.Length
+        $stack += $f
+        if ($total -ge $Size -or $nextTotal -gt $Size -or $_ -eq $maxIndx) {
+            Write-Host ($stack.Count.ToString() + " files, in total = " + ($total/1MB).ToString() + "MB to be backed up")  -ForegroundColor Yellow
+ 
+            Copy-Files -Files $stack
+            $stack = @()
+            $total = 0
         }
     }
-    Write-Host ($count.ToString() + " files, in total = " + ($total/1MB).ToString() + "MB to be backed up")
+    #Write-Host ($stack.Count.ToString() + " files, in total = " + ($total/1MB).ToString() + "MB to be backed up")  -ForegroundColor Yellow
 
     # To check, run this and do calculation with the csv
     # .\funmech-tools\Backup-to-Media -Size 40MB | Select-Object Name, Length | Export-Csv check.csv
     # Here 1KB = 1024B
 
-    Return $files | Select-Object -First $count
+    #Return $files | Select-Object -First $count
 }
 
 function Copy-Files {
@@ -163,6 +168,13 @@ function Copy-Files {
         [String]$TargetPath,
         [Parameter(Mandatory=$True)]$Files
     )
+    Write-Host -ForegroundColor Yellow $Files.Count, "to be backed up"
+    $Files | ForEach-Object {
+        Write-Host -ForegroundColor Yellow $_.Name, ($_.Length/1MB).ToString(), "MB"
+        # Copy-Item -Path $_ -Destination $TargetPath -Force
+    }
+    Return
+}
     if (Test-Path $TargetPath) {
         Write-Error ($TargetPath + " exist!") -Category ResourceExists
         Write-Host "To retify the above exception, please chooce another location or re-write code to allow over-write." -ForegroundColor Green
@@ -174,10 +186,12 @@ function Copy-Files {
         Return
     }
 
-    // Create a new folder
+    Write-Host ($Files.Count.ToString() + " files to be backed up") -ForegroundColor Yellow
+    # Create a new folder
     New-Item -Path $TargetPath -ItemType Directory
-    $Files | ForEach-Object { 
-        Copy-Item -Path $_ -Destination $TargetPath -Force
+    $Files | ForEach-Object {
+        Write-Host -ForegroundColor Yellow $_.Name, ($_.Length/1MB).ToString(), "MB"
+        # Copy-Item -Path $_ -Destination $TargetPath -Force
     }
 }
 
