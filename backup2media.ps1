@@ -127,19 +127,22 @@ function Get-Files {
         Where-Object PSIsContainer -eq $false
         Sort-Object -Property LastWriteTime
 
-    1..$files.Count | ForEach-Object {
+    $maxIndx = $files.Count - 1
+
+    0..$maxIndx | ForEach-Object {
         $f = $files[$_]
         $total += $f.length
+        if ($_ -lt $maxIndx) {
+            $nextTotal = $total + $files[$_ + 1].Length
+        } else {
+            $nextTotal = 0
+        }
         $count += 1
-        if ($total -gt $Size) {
-            $total -= $f.length
-            $count--
-            break
-        } elseif ($total -eq $Size) {
-            Write-Host $f, $f.Length 
+        if ($total -ge $Size -or $nextTotal -gt $Size ) {
+            Write-Host $count, $f, $f.Length 
             break
         } else {
-            Write-Host $f, $f.Length
+            Write-Host $count, $f, $f.Length
         }
     }
     Write-Host ($count.ToString() + " files, in total = " + ($total/1MB).ToString() + "MB to be backed up")
