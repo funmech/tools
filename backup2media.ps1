@@ -1,4 +1,4 @@
-ï»¿<#
+<#
   .Synopsis
     backup files to CD or DVD
   .Description
@@ -13,7 +13,7 @@
 # Update-Help  -Force -Ea 0
 
 # Start a PS sesssion in Unrestricted mode
-# PowerShell.exe â€“ExecutionPolicy Unrestricted
+# PowerShell.exe –ExecutionPolicy Unrestricted
 # Set other execution policies?
 # Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 # Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
@@ -66,7 +66,7 @@ Write-Host ($count.ToString() + " files, in total = " + ($total/1MB).ToString() 
 # PSISContainer: directory 
 $files | ForEach-Object -Process {if (!$_.PSIsContainer) {Set-ItemProperty -Size $_.Length / 1024 /1024; }} | Measure-Object -Property Size -sum
 
-get-childitem -Path d:\scripts â€“recurse |
+get-childitem -Path d:\scripts –recurse |
   where-object {$_.lastwritetime -gt (get-date).addDays(-1)} |
   where-object {-not $_.PSIsContainer} |
   Foreach-Object { $_.FullName }

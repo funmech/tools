@@ -33,3 +33,10 @@ find . -name '*.pyc' -delete
 
 # side note: to prevent pyc, run
 export PYTHONDONTWRITEBYTECODE=1
+
+#git graph in terminal
+git log --graph --decorate --pretty=oneline --abbrev-commit
+
+# Rebase local branch with remote branch
+# useful before merge back to remote branch
+git pull --rebase origin branch
