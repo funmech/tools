@@ -121,6 +121,11 @@ function Get-Files {
         [int]$DiskNoSeek = 1
     )
 
+    if (!(Test-Path $Path)) {
+        Write-Error "Path $Path does not exists." -Category InvalidData
+        Return
+    }
+
     Write-Host "Source path =", $Path, ", size of media for backup =", $Size -ForegroundColor Yellow
 
     $files = Get-ChildItem -Path $Path | 
@@ -133,7 +138,11 @@ function Get-Files {
 
     0..$maxIndx | ForEach-Object {
         $f = $files[$_]
-        Write-Host "\t", $f, $f.Length
+        if ($f.Length -gt $Size) {
+            Write-Warning ("{0} exceeds the size limit: {1:N0} vs {2:N0}" -f $f.Name, $f.Length, $Size)
+            Break
+        }
+        Write-Host ("`t ${f}: {0:N0}" -f $f.Length)
 
         $total += $f.length
         if ($_ -lt $maxIndx) {
