@@ -1,9 +1,19 @@
+# clear all:
+docker system prune -f
+
+# remove all stopped containers
+docker container prune -f
+
 # remove <none>:<none>
 docker rmi $(docker images -f "dangling=true" -q) -f
+docker image prune -f  # simpler version
+
+# remove boapi images from all repositories
+docker images -a | grep boapi | awk '{print $3}' | xargs docker rmi
 
 # Stop & Remove All Docker Containers
-docker stop $(docker ps -a -q)
-docker rm $(docker ps -a -q)
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq)
 
 # remove every images
 docker rmi $(docker images -q)
@@ -13,6 +23,9 @@ docker volume rm $(docker volume ls -q)
 
 # run once (clean up)
 docker run -it --rm python:3.6-alpine python
+
+# knowing network of an instance
+docker inspect --format='{{json .NetworkSettings}}' mysql_server | jq
 
 # Build from bo_py
 docker build -t bo_django:1.11 -f ../Dockerfile .

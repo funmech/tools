@@ -40,3 +40,6 @@ git log --graph --decorate --pretty=oneline --abbrev-commit
 # Rebase local branch with remote branch
 # useful before merge back to remote branch
 git pull --rebase origin branch
+
+# diff without details but only files
+git diff --compact-summary gl_feed_v2..CML-11
