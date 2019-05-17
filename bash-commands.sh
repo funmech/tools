@@ -24,6 +24,9 @@ sed '/Unix/{n;s/.*/hi/}' file
 sed -r '/db.ForeignKey(/{n;s/\"([\w_])\./\1hi/}' orm_bank_accounts.py
 (g)sed -e '/db\.ForeignKey(/{n;s/\(column\=\"\)\(.*\)\./\1\2_v2\./}' orm_bank_accounts.py
 
+# add extra at the end of line:
+(g)sed -i 's/$/*.py/' bad_revisions.txt
+
 # multiline search with awk for not containing v2
 awk "/db.ForeignKey/,/column/" orm_*.py | grep -v v2
 
@@ -43,3 +46,6 @@ git pull --rebase origin branch
 
 # diff without details but only files
 git diff --compact-summary gl_feed_v2..CML-11
+
+# remove files listed in a file: one on every line
+rm $(cat bad_revisions.txt)
