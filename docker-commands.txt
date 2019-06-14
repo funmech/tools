@@ -1,3 +1,6 @@
+# General information of docker daemon:
+docker info
+
 # clear all:
 docker system prune -f
 
@@ -21,11 +24,17 @@ docker rmi $(docker images -q)
 # remove every volume
 docker volume rm $(docker volume ls -q)
 
+# dump a log to a file
+docker logs vmmanager_cloud-sql-proxy_1&>sql_proxy.log
+
 # run once (clean up)
 docker run -it --rm python:3.6-alpine python
 
-# knowing network of an instance
+# checking network of an instance
 docker inspect --format='{{json .NetworkSettings}}' mysql_server | jq
+# or
+docker inspect -f='{{.NetworkSettings}}' mysql_server | jq
+# format can be key hierarchical: .NetworkSettings.Ports
 
 # Build from bo_py
 docker build -t bo_django:1.11 -f ../Dockerfile .
@@ -57,3 +66,13 @@ docker run \
 
  docker-compose -f examples/deployment/docker-compose-services-proxy.yml stop
  docker-compose -f examples/deployment/docker-compose-services-proxy.yml down --volume
+
+ # limits the log size to 10m and keep only three rotations:
+ # after changing daemon.json, reload or restart dockerd: systemctl reload docker, re-create container instance
+# /etc/docker/daemon.json
+ {
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}

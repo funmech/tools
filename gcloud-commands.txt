@@ -14,10 +14,13 @@ gcloud iam service-accounts keys create [FILE_NAME].json --iam-account [NAME]@[P
 gcloud auth  activate-service-account --key-file ~/path/key.json
 
 # check what account is active
-gcloue auth list
+gcloud auth list
 
 # switch to an account `ACCOUNT`
 gcloud config set account `ACCOUNT`
 
 # check compute instances
 gcloud compute instances list
+
+# check which image a vm was created from
+gcloud compute disks describe [Your-Instance-name]

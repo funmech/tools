@@ -1,14 +1,14 @@
 # get open ports on local network
 netstat -ap tcp
 
-# -i4 means only show ipv4 address and ports -P and -n fast output
+# -i4 means only show ipv4 address on Internet and ports -P and -n fast output
 lsof -Pn -i4
 
 # TCP in LISTEN state
-lsof -PiTCP -sTCP:LISTEN
+lsof -Pi TCP -s tcp:listen
 
-# check if a port is open
-lsof -Pi :8814 -sTCP:LISTEN
+# check if a tcp port is being listened
+lsof -Pi tcp:8000 -s tcp:listen
 
 # on macOS, add '' after -i
 # or brew install gnu-sed and use gsed
