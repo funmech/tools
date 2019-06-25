@@ -49,3 +49,9 @@ git diff --compact-summary gl_feed_v2..CML-11
 
 # remove files listed in a file: one on every line
 rm $(cat bad_revisions.txt)
+
+# for loop
+for i in {0..10..2}
+  do
+     echo "Welcome $i times"
+ done
