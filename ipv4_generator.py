@@ -1,10 +1,10 @@
-import argparse
 import csv
 import functools
+import glob
+import os.path
+
 from ipaddress import IPv4Network, IPv4Address, AddressValueError
 from random import getrandbits, sample
-import os.path
-import sys
 from time import time
 
 
@@ -201,7 +201,10 @@ def demo_big_network():
 
 
 @timer
-def replace_ips(dict_file, part_of_parts):
+def replace_ips(dict_file, source_csv):
+    """
+    source_csv: path to a csv file
+    """
     # Read csv file into a list of two-string tuple
     with open(dict_file, 'rt') as csv_f:
         csv_reader = csv.reader(csv_f)
@@ -209,6 +212,40 @@ def replace_ips(dict_file, part_of_parts):
         #     print(row)
         mapping = {row[0]: row[1] for row in csv_reader}
 
+    mapped_file = prefix_fn(source_csv)
+    bunchsize = 10000     # Experiment with different sizes
+    bunch = []
+    # source_parts should in the mapping file: each subnet has its own
+    with open(source_csv, 'rt') as r, open(mapped_file, "wt") as w:
+        line = r.readline()
+        while line:
+            source_parts = line.split(',')
+            try:
+                IPv4Address(source_parts[0])
+                source_parts[0] = mapping[source_parts[0]]
+                bunch.append(','.join(source_parts))
+                if len(bunch) == bunchsize:
+                    w.writelines(bunch)
+                    bunch = []
+            except AddressValueError as err:
+                # ignore first field is not an ip, just put it back
+                print(err)
+                print("first field is not IPv4: %s in %s" % (source_parts[0], line))
+                bunch.append(line)
+            line = r.readline()
+        w.writelines(bunch)
+
+
+@timer
+def read_mapping_file(dict_file):
+    with open(dict_file, 'rt') as csv_f:
+        csv_reader = csv.reader(csv_f)
+        return {row[0]: row[1] for row in csv_reader}
+
+
+@timer
+def replace_ips_with_map(part_of_parts, mapping):
+    # Read csv file into a list of two-string tuple
     mapped_file = prefix_fn(part_of_parts)
     bunchsize = 10000     # Experiment with different sizes
     bunch = []
@@ -244,38 +281,12 @@ cat parts/6apr.csv.* > verify.csv
 
 
 def batch_replace(dict_file, pat):
-    import glob
+    mapping = read_mapping_file(dict_file)
     files = glob.glob(pat)
     for f in files:
-        print(f)
-        replace_ips('example.csv', f)
-
-
-def verify_path(path):
-    dir_name = os.path.dirname(path)
-    if dir_name:
-        return os.path.exists(dir_name)
-    return os.path.exists(path)
+        replace_ips_with_map(f, mapping)
 
 
 if __name__ == '__main__':
     # replace_ips('example.csv', 'data/parts/6apr.csv.ak')
-    # batch_replace('example.csv', 'data/parts/6apr.csv.*')
-    parser = argparse.ArgumentParser(description='Mapping IPs to other IPs.')
-    parser.add_argument('-m', type=str, dest='mapping', required=True,
-                        help='path to mapping csv file')
-    parser.add_argument('-s', type=str, dest='source', required=True,
-                        help='path to source files of IPs, supports pattern')
-
-
-    args = parser.parse_args()
-    print(args.mapping)
-    print(args.source)
-
-    if not verify_path(args.mapping):
-        print('path to mapping csv file %s does not exists', args.mapping)
-        sys.exit(1)
-
-    if not verify_path(args.source):
-        print('path to IP source file %s does not exists', args.source)
-        sys.exit(1)
+    batch_replace('example.csv', 'data/parts/6apr.csv.*')
