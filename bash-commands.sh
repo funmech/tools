@@ -37,6 +37,14 @@ find . -name '*.pyc' -delete
 # side note: to prevent pyc, run
 export PYTHONDONTWRITEBYTECODE=1
 
+# After a tken has been reoked, you may see 403 when push, you need to reset token
+# To do this , reset user name even this may not have changed.
+# To change locally for just one repository
+git config credential.username "new_username"
+
+# To change globally use
+git config credential.username --global "new_username"
+
 #git graph in terminal
 git log --graph --decorate --pretty=oneline --abbrev-commit
 
@@ -46,6 +54,11 @@ git pull --rebase origin branch
 
 # diff without details but only files
 git diff --compact-summary gl_feed_v2..CML-11
+
+# track a new remote branch
+git checkout -b ip origin/ip
+# or
+git checkout --track origin/serverfix
 
 # remove files listed in a file: one on every line
 rm $(cat bad_revisions.txt)
