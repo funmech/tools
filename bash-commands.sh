@@ -68,3 +68,8 @@ for i in {0..10..2}
   do
      echo "Welcome $i times"
  done
+
+# check weak ciphers using namp:
+# https://www.owasp.org/index.php/Testing_for_Weak_SSL/TLS_Ciphers,_Insufficient_Transport_Layer_Protection_(OTG-CRYPST-001)
+nmap --script ssl-cert,ssl-enum-ciphers -p 443 api.com
+ 
