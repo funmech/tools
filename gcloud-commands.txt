@@ -19,8 +19,30 @@ gcloud auth list
 # switch to an account `ACCOUNT`
 gcloud config set account `ACCOUNT`
 
+# set credential for running code
+export GOOGLE_APPLICATION_CREDENTIALS=service-account-key.json
+
+# list compute machine types in region
+gcloud compute machine-types list --filter="zone:(australia-southeast1)"
+
 # check compute instances
 gcloud compute instances list
 
 # check which image a vm was created from
 gcloud compute disks describe [Your-Instance-name]
+
+# Cloud Dataflow commands:
+# create a job using Google template PubSub_to_BigQuery:
+gcloud beta dataflow jobs run predictions-to-bq-$(date +%s) \
+--num-workers=1 --max-workers=1 --worker-machine-type=n1-standard-1 \
+--gcs-location gs://dataflow-templates/latest/PubSub_to_BigQuery \
+--parameters \
+inputTopic=projects/sandbox/topics/demo,\
+outputTableSpec=sandbox:dateset.table
+
+# get the first job's id
+current_job_id=$(gcloud beta dataflow --format=json jobs list --status=active | jq .[0].id | tr -d '"')
+current_job_id=$(gcloud beta dataflow --format=json jobs list --status=active | jq .[0].id | xargs)
+
+gcloud beta dataflow jobs describe $current_job_id
+gcloud beta dataflow jobs cancel $current_job_id
