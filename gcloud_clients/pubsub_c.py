@@ -73,7 +73,7 @@ class SClient:
 
 
 # demo code
-def list_poject_topics(client):
+def list_project_topics(client):
     for topic in client.get_topics():
         print(topic)
 
