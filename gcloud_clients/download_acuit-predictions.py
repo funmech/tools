@@ -37,14 +37,15 @@ def dowload(org_id):
     keys = [store.client.key(kind, org_id) for kind in PREDICTIONS]
 
     # concat all kind of predictions into a list
-    return [_wrapper(entity) for entity in store.client.get_multi(keys)]
+    return {entity.kind: _wrapper(entity) for entity in store.client.get_multi(keys)}
 
 
 def save_predictions(values, nd=False):
-    """dump to normal json files which BQ does not accept
+    """Save all kinds of predictions to a json file
 
     ARGS:
         values (list): keys are precition kind, values are predictions
+        nd (bool): if it should be in NEWLINEDELIMITED format JSON
     """
     # for each prediction
     if nd:
@@ -58,7 +59,7 @@ def save_predictions(values, nd=False):
 
     # flat out types
     new_values = []
-    for v in values:
+    for v in values.values():
         new_values += v
     saver(new_values, fn_template.format("all_in_one"))
 
