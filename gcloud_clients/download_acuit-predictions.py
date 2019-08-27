@@ -35,19 +35,18 @@ def dowload(org_id):
 
     # get filter keys
     keys = [store.client.key(kind, org_id) for kind in PREDICTIONS]
-
-    # concat all kind of predictions into a list
     return {entity.kind: _wrapper(entity) for entity in store.client.get_multi(keys)}
 
 
-def save_predictions(values, nd=False):
+def save_predictions(values, nd=False, split=False):
     """Save all kinds of predictions to a json file
 
     ARGS:
-        values (list): keys are precition kind, values are predictions
+        values (dict): keys are precition kind, values are predictions
         nd (bool): if it should be in NEWLINEDELIMITED format JSON
+        split (boo): should generate one for all or each for a kind
     """
-    # for each prediction
+    assert isinstance(values, dict)
     if nd:
         saver = _save_nd_json
         fn_template = "{}_nd.json"
@@ -57,11 +56,24 @@ def save_predictions(values, nd=False):
         fn_template = "{}.json"
         print("Saving to normal JSON format")
 
-    # flat out types
+    if split:
+        _save_individually(values, saver, fn_template)
+    else:
+        _save_all_in_one(values, saver, fn_template.format("all_in_one"))
+
+
+def _save_all_in_one(values, saver, fn):
+    # flat out kinds, ignore them
     new_values = []
     for v in values.values():
         new_values += v
-    saver(new_values, fn_template.format("all_in_one"))
+    saver(new_values, fn)
+
+
+def _save_individually(values, saver, fn_template):
+    # save predictions into individual files using kind
+    for k, v in values.items():
+        saver(v, fn_template.format(k))
 
 
 def _save_json(predictions, fn):
@@ -84,6 +96,9 @@ if __name__ == "__main__":
         sys.exit("Missing position argument org id. Run as: %s 0141j5tlqqrjijwu4mnayh" % sys.argv[0])
 
     print("To download predictions of the org with this ID: %s" % sys.argv[1])
+    # default result is all_in_one_nd.json.
+    # add extra positional arg, it will create normal json file all_in_one.json
+    # manually add True to save_predictions to save files individually in different formats.
 
     if len(sys.argv) > 2:
         # save to ND format for BQ
