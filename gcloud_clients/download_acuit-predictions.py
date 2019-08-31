@@ -8,9 +8,9 @@ from datastore_c import DSClient
 
 def _wrapper(entity):
     """Create prediction rows for BQ table from DS entity"""
-    base = {"org_uid": entity.key.id_or_name}
+    base = {"organisation_uid": entity.key.id_or_name}
     if "predicted_at" in entity:
-        base["predicted_at"] = str(entity["predicted_at"])
+        base["predicted_at"] = entity["predicted_at"].isoformat()
 
     rows = []
     for prediction in json.loads(entity['predictions']):
