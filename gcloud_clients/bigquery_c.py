@@ -1,13 +1,13 @@
-import google.auth
 from google.cloud.bigquery import Client
 
+from project import Info
 
-class BQClient(Client):
-    """Query a BigQuery dataset"""
+
+class BQClient(Info, Client):
+    """A client for querying a BigQuery dataset"""
 
     def __init__(self, dataset):
         super().__init__()
-        _, self.project_id = google.auth.default()
         self.dataset = dataset
 
     def _full_table_name(self, table):
@@ -23,11 +23,13 @@ class BQClient(Client):
 
     @staticmethod
     def print_row(row):
+        """Print a row with field names and values"""
         for k, v in row.items():
             print(f"{k} = {v}")
 
     @staticmethod
     def print_rows(rows):
+        """Print rows with numbers and field names and values"""
         count = 0
         for row in rows:
             count += 1
