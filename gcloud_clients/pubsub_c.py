@@ -1,19 +1,16 @@
 import time
 
 from google.cloud import pubsub
-import google.auth
+
+from project import Info
 
 
-class PClient:
-    """Publisher clients"""
-    def __init__(self):
-        """Initialise a PubSub client with GOOGLE_APPLICATION_CREDENTIALS"""
-        _, self.project_id = google.auth.default()
-        self.client = pubsub.PublisherClient()
+class PClient(Info, pubsub.PublisherClient):
+    """PubSub publisher client"""
 
     def get_topics(self):
         """Get topics of current project"""
-        return self.client.list_topics(self.project_path)
+        return self.list_topics(self.project_path)
 
     @staticmethod
     def _ensure_bytes(message):
@@ -25,10 +22,10 @@ class PClient:
 
     @property
     def project_path(self):
-        return self.client.project_path(self.project_id)
+        return super().project_path(self.project_id)
 
     def topic_path(self, topic_name):
-        return self.client.topic_path(self.project_id, topic_name)
+        return super().topic_path(self.project_id, topic_name)
 
     def publish_messages(self, topic_name, messages):
         """Publishes multiple messages to a Pub/Sub topic.
@@ -41,17 +38,15 @@ class PClient:
 
         for msg in messages:
             # When you publish a message, the client returns a future.
-            future = self.client.publish(topic_path, data=self._ensure_bytes(msg))
+            future = super().publish(topic_path, data=self._ensure_bytes(msg))
             print(future.result())
 
 
-class SClient:
-    def __init__(self):
-        _, self.project_id = google.auth.default()
-        self.client = pubsub.SubscriberClient()
+class SClient(Info, pubsub.SubscriberClient):
+    """PubSub subscriber client"""
 
     def subscription_path(self, subscription_name):
-        return self.client.subscription_path(self.project_id, subscription_name)
+        return super().subscription_path(self.project_id, subscription_name)
 
     def receive_messages(self, subscription_name):
         """Receives messages from a pull subscription."""
@@ -63,7 +58,7 @@ class SClient:
             print('Received message: {}'.format(message))
             message.ack()
 
-        self.client.subscribe(subscription_path, callback=callback)
+        super().subscribe(subscription_path, callback=callback)
 
         # The subscriber is non-blocking. We must keep the main thread from
         # exiting to allow it to process messages asynchronously in the background.
@@ -85,7 +80,8 @@ def publish_to(client, topic_name):
 
 if __name__ == "__main__":
     publisher = PClient()
-    publish_to(publisher, "tempo-test")
+    list_project_topics(publisher)
+    # publish_to(publisher, "tempo-test")
 
     # client = SClient()
     # client.receive_messages("laptop")
