@@ -34,8 +34,8 @@ def dowload(org_id):
     )
 
     # get filter keys
-    keys = [store.client.key(kind, org_id) for kind in PREDICTIONS]
-    return {entity.kind: _wrapper(entity) for entity in store.client.get_multi(keys)}
+    keys = [store.key(kind, org_id) for kind in PREDICTIONS]
+    return {entity.kind: _wrapper(entity) for entity in store.get_multi(keys)}
 
 
 def save_predictions(values, nd=False, split=False):
