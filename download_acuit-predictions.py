@@ -3,7 +3,7 @@
 import json
 import sys
 
-from datastore_c import DSClient
+from gcloud_clients.datastore_c import DSClient
 
 
 def _wrapper(entity):

@@ -2,7 +2,7 @@ import base64
 import json
 import os
 
-from bigquery_c import BQClient
+from gcloud_clients.bigquery_c import BQClient
 
 
 def load(data):
@@ -35,6 +35,5 @@ def hello_pubsub(event, context):
         name = base64.b64decode(event['data']).decode('utf-8')
     else:
         name = 'World'
-    print('Hello {}!'.format(name))
     print("Load to bigquery table %s.%s" % (os.environ["dataset"], os.environ["table"]))
     load(base64.b64decode(event['data']))
