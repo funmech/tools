@@ -1,9 +1,10 @@
-## Simple GCP clients for quickly doing simple things
+## Simple GCP clients package for quickly doing simple things
 
 
 ### To quickly run
 1. `export GOOGLE_APPLICATION_CREDENTIALS=path/key.json`
-1. run a script
+1. run a demo script (has to be outside the package itself):
+   `python -m gcloud_clients.bigquery_c`
 
 ### Extra
 The clients get basic project information from `GOOGLE_APPLICATION_CREDENTIALS`, so
