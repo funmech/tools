@@ -2,7 +2,7 @@ import json
 
 from google.cloud import datastore
 
-from project import Info
+from .project import Info
 
 
 class DSClient(Info, datastore.Client):
