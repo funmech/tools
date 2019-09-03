@@ -1,7 +1,7 @@
 from google.cloud.bigquery import Client, Table
 from google.cloud import bigquery
 
-from project import Info
+from .project import Info
 
 
 class BQClient(Info, Client):

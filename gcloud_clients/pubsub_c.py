@@ -2,7 +2,7 @@ import time
 
 from google.cloud import pubsub
 
-from project import Info
+from .project import Info
 
 
 class PClient(Info, pubsub.PublisherClient):
