@@ -26,7 +26,7 @@ class BQClient(Info, Client):
         return super().create_table(self._full_table_name(name))
 
     def describe_table(self, name):
-        """Get basic information of a table"""
+        """Get basic information of a table in storage"""
         table = self.get_table(self._full_table_name(name))
         # View table properties
         print("Table schema: {}".format(table.schema))
@@ -50,6 +50,17 @@ class BQClient(Info, Client):
         destination_table = super().get_table(full_table_name)
         print("Loaded {} rows.".format(destination_table.num_rows))
 
+    def insert(self, table_name, rows):
+        """Insert a list of dict into a table
+
+        Returns:
+            Sequence[Mappings]:
+                check retrun list of errors.
+        """
+        # super().insert_rows() needs all fields to be presented
+        # values have to be JSON-compatible, so some Python objects may cause problems
+        return super().insert_rows_json(self._full_table_name(table_name), rows)
+
     def browse_rows(self, table_name, field_names, start_index=0, max_rows=10):
         """Similar to select query, but treats it natively var API"""
         table = self.get_table(self._full_table_name(table_name))
@@ -66,15 +77,19 @@ class BQClient(Info, Client):
     def select(self, table_name, fields, conditions=None):
         """Run a select query"""
         # full table name has to be escaped for running SQL
-        QUERY = "SELECT %s FROM `%s`" % (
+        statement = "SELECT %s FROM `%s`" % (
             ",".join(fields),
             self._full_table_name(table_name),
         )
         if conditions:
-            QUERY += " %s" % ",".join(conditions)
+            statement += " %s" % ",".join(conditions)
 
-        query_job = self.query(QUERY)
+        query_job = self.query(statement)
         return query_job.result()  # return an iterator
+
+    def count(self, table_name, conditions=None):
+        """Do count through query, so it should have all counts: buffer and storage"""
+        return self.select(table_name, ["count(*) as total"], conditions)
 
     @staticmethod
     def print_row(row):
@@ -95,9 +110,6 @@ class BQClient(Info, Client):
 
 if __name__ == "__main__":
     client = BQClient("save_predictions_test_one")
-    # client.describe_table("all_in_one")
-    # rows = client.select("all_in_one", ["COUNT(*) AS total"])
-    # client.print_rows(rows)
 
     # rows = client.select("all_in_one", ("organisation_uid", "predicted_at"))
     # client.print_rows(rows)
@@ -105,4 +117,13 @@ if __name__ == "__main__":
 
     # schema = client.schema_from_json("../combined_schema.json")
     # client.create_table("test_script", schema)
-    client.load_from_json("test_script", "InvoicePayablePredictions_nd.json")
+    # client.load_from_json("test_script", "InvoicePayablePredictions_nd.json")
+
+    # read a list of dict from a json file
+    import json
+    with open("all_in_one.json", "rt") as jf:
+        rows = json.load(jf)
+    print(client.insert("all_in_one", rows))
+    client.describe_table("all_in_one")
+    rows = client.count("all_in_one")
+    client.print_rows(rows)
