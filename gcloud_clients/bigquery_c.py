@@ -89,7 +89,11 @@ class BQClient(Info, Client):
 
     def count(self, table_name, conditions=None):
         """Do count through query, so it should have all counts: buffer and storage"""
-        return self.select(table_name, ["count(*) as total"], conditions)
+        try:
+            return list(self.select(table_name, ["count(*) as total"], conditions))[0]["total"]
+        except Exception as err:
+            print(err)
+            return None
 
     @staticmethod
     def print_row(row):
@@ -120,10 +124,9 @@ if __name__ == "__main__":
     # client.load_from_json("test_script", "InvoicePayablePredictions_nd.json")
 
     # read a list of dict from a json file
-    import json
-    with open("all_in_one.json", "rt") as jf:
-        rows = json.load(jf)
-    print(client.insert("all_in_one", rows))
-    client.describe_table("all_in_one")
-    rows = client.count("all_in_one")
-    client.print_rows(rows)
+    # import json
+    # with open("gcloud_clients/all_in_one.json", "rt") as jf:
+    #     rows = json.load(jf)
+    # print(client.insert("all_in_one", rows))
+    # client.describe_table("all_in_one")
+    print(client.count("all_in_one"))
