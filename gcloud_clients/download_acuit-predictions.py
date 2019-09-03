@@ -8,7 +8,7 @@ from datastore_c import DSClient
 
 def _wrapper(entity):
     """Create prediction rows for BQ table from DS entity"""
-    base = {"organisation_uid": entity.key.id_or_name}
+    base = {"organisation_uid": entity.key.id_or_name, "prediction_type": entity.kind}
     if "predicted_at" in entity:
         base["predicted_at"] = entity["predicted_at"].isoformat()
 
