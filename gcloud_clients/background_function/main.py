@@ -9,10 +9,13 @@ def load(data):
     client = BQClient(os.environ["dataset"])
     rows = json.loads(data)
     print("To load %d rows" % len(rows))
-    print(client.insert(os.environ["table"], rows))
-    client.describe_table(os.environ["table"])
-    rows = client.count(os.environ["table"])
-    client.print_rows(rows)
+    errors = client.insert(os.environ["table"], rows)
+    if errors:
+        print("there was some errors")
+        print(errors)
+
+    count = client.count(os.environ["table"])
+    print("Total number of rows in BQ (includes buffer): %s" % count)
 
 
 def hello_pubsub(event, context):
