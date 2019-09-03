@@ -1,3 +1,20 @@
+import base64
+import json
+import os
+
+from bigquery_c import BQClient
+
+
+def load(data):
+    client = BQClient(os.environ["dataset"])
+    rows = json.loads(data)
+    print("To load %d rows" % len(rows))
+    print(client.insert(os.environ["table"], rows))
+    client.describe_table(os.environ["table"])
+    rows = client.count(os.environ["table"])
+    client.print_rows(rows)
+
+
 def hello_pubsub(event, context):
     """Background Cloud Function to be triggered by Pub/Sub.
     Args:
@@ -8,8 +25,6 @@ def hello_pubsub(event, context):
          metadata. The `event_id` field contains the Pub/Sub message ID. The
          `timestamp` field contains the publish time.
     """
-    import base64
-
     print("""This Function was triggered by messageId {} published at {}
     """.format(context.event_id, context.timestamp))
 
@@ -18,3 +33,5 @@ def hello_pubsub(event, context):
     else:
         name = 'World'
     print('Hello {}!'.format(name))
+    print("Load to bigquery table %s.%s" % (os.environ["dataset"], os.environ["table"]))
+    load(base64.b64decode(event['data']))
