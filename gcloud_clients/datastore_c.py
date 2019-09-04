@@ -1,8 +1,12 @@
+import logging
 import json
 
 from google.cloud import datastore
 
 from .project import Info
+
+
+logger = logging.getLogger(__name__)
 
 
 class DSClient(Info, datastore.Client):
@@ -11,7 +15,7 @@ class DSClient(Info, datastore.Client):
     @staticmethod
     def sorted_print(item):
         for k, v in sorted(item.items()):
-            print(f"{k} = {v}")
+            logger.debug(f"{k} = {v}")
 
     def list_kinds(self, users=True):
         """List kinds
@@ -34,7 +38,8 @@ class DSClient(Info, datastore.Client):
             self.sorted_print(statistics)
             return statistics
         except IndexError:
-            # The kind des not exist
+            # The kind does not exist
+            logger.warning("The kind %s does not exist", kind)
             return {}
 
     def list_keys(self, kind, limit=10):
@@ -42,7 +47,6 @@ class DSClient(Info, datastore.Client):
         # get filter keys
         for ent in self.query(kind=kind).fetch(limit=limit):
             self.sorted_print(ent)
-            print()
 
     def download(self, *path_args):
         """Download entities based on a key's path
@@ -53,20 +57,8 @@ class DSClient(Info, datastore.Client):
                           parts (int or string).
         """
         if len(path_args) == 0:
-            raise ValueError("Key path must not be empty.")
+            logger.error("Key path must not be empty.")
+            return []
 
         key = self.key(*path_args)
-        entity = self.get(key)
-
-        # print values
-        for i in json.loads(entity['predictions']):
-            print(i)
-        return entity
-
-
-if __name__ == "__main__":
-    ds_client = DSClient()
-    print(ds_client.list_kinds(False))
-    print(ds_client.get_statistics("Invoice"))
-    ds_client.list_keys("Account")
-    # ds_client.download("InvoicePayableRecurringPredictions", "0141j5tlqqrjijwu4mnayh")
+        return self.get(key)

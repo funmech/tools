@@ -1,8 +1,11 @@
+import logging
 import time
 
 from google.cloud import pubsub
 
 from .project import Info
+
+logger = logging.getLogger(__name__)
 
 
 class PClient(Info, pubsub.PublisherClient):
@@ -39,7 +42,7 @@ class PClient(Info, pubsub.PublisherClient):
         for msg in messages:
             # When you publish a message, the client returns a future.
             future = super().publish(topic_path, data=self._ensure_bytes(msg))
-            print(future.result())
+            logger.info(future.result())
 
 
 class SClient(Info, pubsub.SubscriberClient):
@@ -55,33 +58,13 @@ class SClient(Info, pubsub.SubscriberClient):
         subscription_path = self.subscription_path(subscription_name)
 
         def callback(message):
-            print('Received message: {}'.format(message))
+            logger.debug('Received message: {}'.format(message))
             message.ack()
 
         super().subscribe(subscription_path, callback=callback)
 
         # The subscriber is non-blocking. We must keep the main thread from
         # exiting to allow it to process messages asynchronously in the background.
-        print('Listening for messages on {}'.format(subscription_path))
+        logger.debug('Listening for messages on {}'.format(subscription_path))
         while True:
             time.sleep(60)
-
-
-# demo code
-def list_project_topics(client):
-    for topic in client.get_topics():
-        print(topic)
-
-
-def publish_to(client, topic_name):
-    messages = (f"Message number {n}" for n in range(1, 10))
-    client.publish_messages(topic_name, messages)
-
-
-if __name__ == "__main__":
-    publisher = PClient()
-    list_project_topics(publisher)
-    # publish_to(publisher, "tempo-test")
-
-    # client = SClient()
-    # client.receive_messages("laptop")

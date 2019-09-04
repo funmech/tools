@@ -1,24 +1,35 @@
 import base64
 import json
+import logging
 import os
 
 from gcloud_clients.bigquery_c import BQClient
 
 
+# set default logging level to INFO
+logging.basicConfig(
+    level=getattr(logging, os.environ.get("loglevel", "info").upper()),
+    format="%(levelname)s: %(module)s %(lineno)d %(message)s",
+)
+
+
 def load(data):
     if not isinstance(data, list):
-        print("BigQuery table only accept list of JSON")
+        logging.warning("BigQuery table only accept list of JSON")
 
     client = BQClient(os.environ["dataset"])
     rows = json.loads(data)
-    print("To load %d rows" % len(rows))
+    logging.debug("To load %d rows" % len(rows))
     errors = client.insert(os.environ["table"], rows)
     if errors:
-        print("there was some errors")
-        print(errors)
+        logging.error("there was some errors")
+        logging.error(errors)
 
     count = client.count(os.environ["table"])
-    print("Total number of rows in BQ (includes buffer): %s" % count)
+    logging.info(
+        "Successfully processed message. Total number of rows in BQ (includes buffer) now = %s",
+        count,
+    )
 
 
 def pubsub_to_bq(event, context):
@@ -31,9 +42,15 @@ def pubsub_to_bq(event, context):
          metadata. The `event_id` field contains the Pub/Sub message ID. The
          `timestamp` field contains the publish time.
     """
-    print("""This Function was triggered by messageId {} published at {}
-    """.format(context.event_id, context.timestamp))
+    logging.info(
+        "This Function was triggered by messageId {} published at {}".format(
+            context.event_id, context.timestamp
+        )
+    )
 
-    if 'data' in event:
-        print("Load to bigquery table %s.%s" % (os.environ["dataset"], os.environ["table"]))
-        load(base64.b64decode(event['data']))
+    if "data" in event:
+        logging.debug(
+            "Load to bigquery table %s.%s"
+            % (os.environ["dataset"], os.environ["table"])
+        )
+        load(base64.b64decode(event["data"]))
