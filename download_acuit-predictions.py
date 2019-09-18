@@ -28,43 +28,60 @@ def _raw(entity):
         "predictions": json.loads(entity['predictions'])
         }
 
-def _is_in(fields, obj):
-    """Locate which one is in the list if it is in"""
+def _is_element_in(fields, obj):
+    """
+    Find if an element in a list is in a dict. The keys in the list represent the same property
+    under different key in different dicts.
+
+    Args:
+        fields (list[str]): A list of dict keys to be checked.
+        obj (dict): The dict object to be checked.
+    Returns:
+        str: The key in interest or None.
+    """
     for f in fields:
         if f in obj:
             return f
 
 
 def package_predictions(ds_entity):
-    """Package predictions with associated information as individual dict"""
-    # Not all prediction kind has organisation_uid, but name has this info
+    """
+    Package prediction data entries in a datastore entity with associated
+    information as individual dict which will be ingested as a row of
+    BigQuery table directly
+
+    Args:
+        ds_entity (datastore.Entity): entity contains predictions and associated data are to be published
+    """
     organisation_uid = (
         ds_entity["organisation_uid"]
         if "organisation_uid" in ds_entity
         else ds_entity.key.id_or_name
     )
     if ds_entity.kind.endswith('s'):
-        singular = ds_entity.kind[:-1]
+        name = ds_entity.kind[:-1]
     else:
-        singular = ds_entity.kind
+        name = ds_entity.kind
 
-    # payments, transactions, transfers need to flatted further
+    # InvoiceReceivableRecurringPrediction.payments, InvoicePayableRecurringPrediction.payments
+    # TransactionPrediction.transactions, TransferPrediction.transfers are the main data entries
+    # correspond to BigQuery table rows
     nested_fields = ["payments", "transactions", "transfers"]
     predictions = []
-    for prediction in json.loads(ds_entity["predictions"]):
+    for prediction in ds_entity["predictions"]:
         package = {
             "organisation_uid": organisation_uid,
             "predicted_at": ds_entity["predicted_at"].isoformat(),
-            "prediction_type": singular,
+            "prediction_type": name,
         }
-        nested = _is_in(nested_fields, prediction)
+        nested = _is_element_in(nested_fields, prediction)
         if nested:
             for item in prediction[nested]:
-                deeper = package.copy()
-                deeper[singular] = item
-                predictions.append(deeper)
+                entry = package.copy()
+                entry[name] = item
+                predictions.append(entry)
         else:
-            package[singular] = prediction
+            package[name] = prediction
             predictions.append(package)
 
     return predictions
@@ -120,7 +137,8 @@ def _save_all_in_one(values, saver, fn):
     # flat out kinds, ignore them
     new_values = []
     for v in values.values():
-        new_values += v
+        if v["predictions"]:
+            new_values += v
     saver(new_values, fn)
 
 
@@ -145,7 +163,7 @@ def _save_nd_json(predictions, fn):
             jf.write(json.dumps(prediction) + "\n")
 
 
-if __name__ == "__main__":
+def download_an_org():
     if len(sys.argv) < 2:
         sys.exit("Missing position argument org id. Run as: %s 0141j5tlqqrjijwu4mnayh" % sys.argv[0])
 
@@ -159,3 +177,8 @@ if __name__ == "__main__":
         save_predictions(dowload(sys.argv[1]), True)
     else:
         save_predictions(dowload(sys.argv[1]), False)
+
+
+if __name__ == "__main__":
+    print("To download all predictions of all orgs and save in json for pubsub")
+    save_predictions(dowload(), False)
