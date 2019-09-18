@@ -20,6 +20,56 @@ def _wrapper(entity):
     return rows
 
 
+def _raw(entity):
+    """Create prediction rows for BQ table from DS entity"""
+    return {
+        "organisation_uid": entity.key.id_or_name,
+        "prediction_type": entity.kind,
+        "predictions": json.loads(entity['predictions'])
+        }
+
+def _is_in(fields, obj):
+    """Locate which one is in the list if it is in"""
+    for f in fields:
+        if f in obj:
+            return f
+
+
+def package_predictions(ds_entity):
+    """Package predictions with associated information as individual dict"""
+    # Not all prediction kind has organisation_uid, but name has this info
+    organisation_uid = (
+        ds_entity["organisation_uid"]
+        if "organisation_uid" in ds_entity
+        else ds_entity.key.id_or_name
+    )
+    if ds_entity.kind.endswith('s'):
+        singular = ds_entity.kind[:-1]
+    else:
+        singular = ds_entity.kind
+
+    # payments, transactions, transfers need to flatted further
+    nested_fields = ["payments", "transactions", "transfers"]
+    predictions = []
+    for prediction in json.loads(ds_entity["predictions"]):
+        package = {
+            "organisation_uid": organisation_uid,
+            "predicted_at": ds_entity["predicted_at"].isoformat(),
+            "prediction_type": singular,
+        }
+        nested = _is_in(nested_fields, prediction)
+        if nested:
+            for item in prediction[nested]:
+                deeper = package.copy()
+                deeper[singular] = item
+                predictions.append(deeper)
+        else:
+            package[singular] = prediction
+            predictions.append(package)
+
+    return predictions
+
+
 def dowload(org_id):
     """Download predictions"""
     store = DSClient()
@@ -35,7 +85,9 @@ def dowload(org_id):
 
     # get filter keys
     keys = [store.key(kind, org_id) for kind in PREDICTIONS]
-    return {entity.kind: _wrapper(entity) for entity in store.get_multi(keys)}
+    return {entity.kind: package_predictions(entity) for entity in store.get_multi(keys)}
+    # this is only for special cases
+    # return {entity.kind: _raw(entity) for entity in store.get_multi(keys)}
 
 
 def save_predictions(values, nd=False, split=False):
@@ -44,7 +96,7 @@ def save_predictions(values, nd=False, split=False):
     ARGS:
         values (dict): keys are precition kind, values are predictions
         nd (bool): if it should be in NEWLINEDELIMITED format JSON
-        split (boo): should generate one for all or each for a kind
+        split (bool): should generate one for all or each for a kind
     """
     assert isinstance(values, dict)
     if nd:
@@ -55,6 +107,7 @@ def save_predictions(values, nd=False, split=False):
         saver = _save_json
         fn_template = "{}.json"
         print("Saving to normal JSON format")
+    print(values)
 
     if split:
         _save_individually(values, saver, fn_template)
@@ -63,6 +116,7 @@ def save_predictions(values, nd=False, split=False):
 
 
 def _save_all_in_one(values, saver, fn):
+    # saver(values, fn)
     # flat out kinds, ignore them
     new_values = []
     for v in values.values():
@@ -102,6 +156,6 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 2:
         # save to ND format for BQ
-        save_predictions(dowload(sys.argv[1]), False)
-    else:
         save_predictions(dowload(sys.argv[1]), True)
+    else:
+        save_predictions(dowload(sys.argv[1]), False)
