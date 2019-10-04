@@ -41,6 +41,7 @@ class DSClient(Info, datastore.Client):
         """List keys of a Kind"""
         # get filter keys
         for ent in self.query(kind=kind).fetch(limit=limit):
+            print(ent.key.id_or_name)
             self.sorted_print(ent)
             print()
 
@@ -66,7 +67,12 @@ class DSClient(Info, datastore.Client):
 
 if __name__ == "__main__":
     ds_client = DSClient()
-    print(ds_client.list_kinds(False))
-    print(ds_client.get_statistics("Invoice"))
-    ds_client.list_keys("Account")
+    # print(ds_client.list_kinds(False))
+    # print(ds_client.get_statistics("Invoice"))
+    # ds_client.list_keys("Account")
     # ds_client.download("InvoicePayableRecurringPredictions", "0141j5tlqqrjijwu4mnayh")
+    kinds = [kind for kind in ds_client.list_kinds() if kind.endswith("Predictions")]
+    for kind in kinds:
+        print(kind)
+        ds_client.list_keys(kind, 1)
+        print("="*80)

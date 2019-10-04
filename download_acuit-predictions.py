@@ -71,9 +71,13 @@ def package_predictions(ds_entity):
     for prediction in ds_entity["predictions"]:
         package = {
             "organisation_uid": organisation_uid,
-            "predicted_at": ds_entity["predicted_at"].isoformat(),
             "prediction_type": name,
         }
+        try:
+            package["predicted_at"] = ds_entity["predicted_at"].isoformat()
+        except KeyError:
+            pass
+
         nested = _is_element_in(nested_fields, prediction)
         if nested:
             for item in prediction[nested]:
@@ -107,6 +111,31 @@ def dowload(org_id):
     # return {entity.kind: _raw(entity) for entity in store.get_multi(keys)}
 
 
+def dowload_all():
+    """Download all predictions of kinds"""
+    store = DSClient()
+
+    PREDICTIONS = (
+        "InvoiceReceivablePredictions",
+        "InvoiceReceivableRecurringPredictions",
+        "InvoicePayablePredictions",
+        "InvoicePayableRecurringPredictions",
+        "TransactionPredictions",
+        "TransferPredictions",
+    )
+
+    predictions = {}
+    for kind in PREDICTIONS:
+        predictions[kind] = []
+        query = store.query(kind=kind)
+        for entity in query.fetch():
+            prediction_list = json.loads(entity["predictions"])
+            if prediction_list:
+                entity["predictions"] = prediction_list
+                predictions[kind].extend(package_predictions(entity))
+    return predictions
+
+
 def save_predictions(values, nd=False, split=False):
     """Save all kinds of predictions to a json file
 
@@ -124,7 +153,7 @@ def save_predictions(values, nd=False, split=False):
         saver = _save_json
         fn_template = "{}.json"
         print("Saving to normal JSON format")
-    print(values)
+    # print(values)
 
     if split:
         _save_individually(values, saver, fn_template)
@@ -137,8 +166,7 @@ def _save_all_in_one(values, saver, fn):
     # flat out kinds, ignore them
     new_values = []
     for v in values.values():
-        if v["predictions"]:
-            new_values += v
+        new_values += v
     saver(new_values, fn)
 
 
@@ -181,4 +209,5 @@ def download_an_org():
 
 if __name__ == "__main__":
     print("To download all predictions of all orgs and save in json for pubsub")
-    save_predictions(dowload(), False)
+    # dowload_all()
+    save_predictions(dowload_all(), False)
