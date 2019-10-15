@@ -78,3 +78,9 @@ nmap --script ssl-cert,ssl-enum-ciphers -p 443 api.com
 
 # do a scan:
 nmap -sV -sC -o nmapinitial ip_to_scan
+
+# kill a recent background job
+kill %1
+
+# pip install packages one by one, useful when requirements.txt contains -r another.txt
+grep -v "^#" requirements-dev.txt  | xargs -n 1 -L 1 pip install
