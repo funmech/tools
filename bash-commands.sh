@@ -33,6 +33,15 @@ sed '/anchor/a \  \extra: line' $f
 # multiline search with awk for not containing v2
 awk "/db.ForeignKey/,/column/" orm_*.py | grep -v v2
 
+# fold long lines
+fold -w 60 a.file
+# or
+cat a.file | fold -w 60
+# or in vim
+:%!fold -w 60
+# pipe with other tools
+source config.sh
+envsubst < template.yml | base64 | fold -w 60
 
 # https://blog.mozilla.org/webdev/2015/10/27/eradicating-those-nasty-pyc-files/
 find . -name '*.pyc' -delete
