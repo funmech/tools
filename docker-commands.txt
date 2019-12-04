@@ -36,6 +36,12 @@ docker inspect --format='{{json .NetworkSettings}}' mysql_server | jq
 docker inspect -f='{{.NetworkSettings}}' mysql_server | jq
 # format can be key hierarchical: .NetworkSettings.Ports
 
+# Get the network name of an instance
+docker inspect mysql_server -f '{{range $k,$v := .NetworkSettings.Networks}} {{$k}} {{end}}'
+
+# get ip of an instance
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mysql_server
+
 # Build from bo_py
 docker build -t bo_django:1.11 -f ../Dockerfile .
 
