@@ -71,6 +71,10 @@ git diff --compact-summary gl_feed_v2..CML-11
 git checkout -b ip origin/ip
 # or
 git checkout --track origin/serverfix
+# or for weird ones change remote to make sure origin fetches from *, not a particular branch
+[remote "origin"]
+    url = https://github.com/WERID_ONES.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
 
 # remove files listed in a file: one on every line
 rm $(cat bad_revisions.txt)
