@@ -97,3 +97,7 @@ kill %1
 
 # pip install packages one by one, useful when requirements.txt contains -r another.txt
 grep -v "^#" requirements-dev.txt  | xargs -n 1 -L 1 pip install
+
+# decode urlsafe base64 string: from '-' to '+', '_' to '/'.
+echo $encoded_string | tr '_-' '/+' | base64 -d > string
+
