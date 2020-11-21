@@ -101,3 +101,8 @@ grep -v "^#" requirements-dev.txt  | xargs -n 1 -L 1 pip install
 # decode urlsafe base64 string: from '-' to '+', '_' to '/'.
 echo $encoded_string | tr '_-' '/+' | base64 -d > string
 
+# download and extract tar.gz either by curl or wget
+curl https://github.com/google/trillian/archive/v1.3.11.tar.gz | tar -xz
+wget -c https://github.com/google/trillian/archive/v1.3.11.tar.gz && tar -xzf v1.3.11.tar.gz
+wget -c https://github.com/google/trillian/archive/v1.3.11.tar.gz -O - | tar -xz
+
