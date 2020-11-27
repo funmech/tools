@@ -68,13 +68,27 @@ git pull --rebase origin branch
 git diff --compact-summary gl_feed_v2..CML-11
 
 # track a new remote branch
+git fetch --all
 git checkout -b ip origin/ip
-# or
-git checkout --track origin/serverfix
+# or full statement
+git checkout --track origin/ip
 # or for weird ones change remote to make sure origin fetches from *, not a particular branch
 [remote "origin"]
     url = https://github.com/WERID_ONES.git
     fetch = +refs/heads/*:refs/remotes/origin/*
+
+# stash untracked files:
+git stash -u (a_file)
+#git stash selected files
+git stash push file_list...
+
+# search for an introduced string 
+git log -S "A string"
+
+# git tags
+# delete a tag
+git tag -d tag_name  # locally
+git push <remote> :refs/tags/tag_name # remotely
 
 # remove files listed in a file: one on every line
 rm $(cat bad_revisions.txt)
