@@ -84,6 +84,7 @@ git stash push file_list...
 
 # search for an introduced string 
 git log -S "A string"
+git log -S "A string" --since=2009.1.1 --until=2010.1.1 -- path
 
 # git tags
 # delete a tag
