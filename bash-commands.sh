@@ -49,8 +49,14 @@ find . -name '*.pyc' -delete
 # side note: to prevent pyc, run
 export PYTHONDONTWRITEBYTECODE=1
 
-# After a tken has been reoked, you may see 403 when push, you need to reset token
-# To do this , reset user name even this may not have changed.
+# After a token has been reoked, updated, you may see 403 when push, you need to reset token
+# To do this , reset user name even this may not have changed. On Mac, try clean cache from keychain.
+# https://docs.github.com/en/get-started/getting-started-with-git/updating-credentials-from-the-macos-keychain
+
+# We may need this when using multiple account:
+git config --global credential.useHttpPath true
+
+
 # To change locally for just one repository
 git config credential.username "new_username"
 
