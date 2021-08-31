@@ -97,6 +97,13 @@ git log -S "A string" --since=2009.1.1 --until=2010.1.1 -- path
 git tag -d tag_name  # locally
 git push <remote> :refs/tags/tag_name # remotely
 
+# Get first 5 commits from every branch, note `tr` to replace * from the default branch
+for b in `git branch | tr '*' ' '`; do
+    echo Branch: "$b"
+    git log -n5 $br
+    echo
+done
+
 # remove files listed in a file: one on every line
 rm $(cat bad_revisions.txt)
 
