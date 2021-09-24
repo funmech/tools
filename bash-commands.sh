@@ -30,6 +30,11 @@ sed -r '/db.ForeignKey(/{n;s/\"([\w_])\./\1hi/}' orm_bank_accounts.py
 # add a line with leading space escaped after a hint:
 sed '/anchor/a \  \extra: line' $f
 
+# extract a string and clean it:
+# give a file contains this line:
+# [2021.09.22 09:37:00.458] The analysis id of the new analysis is "14221963".
+sed -n 's/.*new analysis is //p' output.txt | sed 's/\"//g; s/\.//'
+
 # multiline search with awk for not containing v2
 awk "/db.ForeignKey/,/column/" orm_*.py | grep -v v2
 
