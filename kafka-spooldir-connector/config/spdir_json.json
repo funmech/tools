@@ -1,0 +1,14 @@
+{
+    "name": "spooldirJsonSource",
+    "config" : {
+	  "connector.class" : "com.github.jcustenborder.kafka.connect.spooldir.SpoolDirSchemaLessJsonSourceConnector",
+	  "topic" : "spooldirJson",
+	  "input.path" : "/tmp/data",
+	  "input.file.pattern" : ".+json",
+	  "error.path" : "/tmp/error",
+	  "finished.path" : "/tmp/finish",
+      "halt.on.error" : false,
+	  "value.converter" : "org.apache.kafka.connect.json.JsonConverter",
+	  "schema.generation.enabled": false
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "spooldir_json_schema",
+  "config": {
+    "connector.class": "com.github.jcustenborder.kafka.connect.spooldir.SpoolDirJsonSourceConnector",
+    "topic": "spooldirJsonSchemed",
+    "input.path": "/tmp/data",
+    "input.file.pattern": ".+json",
+    "error.path": "/tmp/error",
+    "finished.path": "/tmp/finish",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "schema.generation.enabled": false,
+    "key.schema": "{\"name\":\"com.example.users.UserKey\",\"type\":\"STRUCT\",\"isOptional\":false,\"fieldSchemas\":{\"id\":{\"type\":\"INT64\",\"isOptional\":false}}}",
+    "value.schema": "{\"name\":\"com.example.users.User\",\"type\":\"STRUCT\",\"isOptional\":false,\"fieldSchemas\":{\"id\":{\"type\":\"INT64\",\"isOptional\":false},\"first_name\":{\"type\":\"STRING\",\"isOptional\":true}}}"   
+  }
+}

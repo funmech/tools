@@ -1,0 +1,9 @@
+FROM cnfldemos/cp-server-connect-datagen:0.5.3-7.1.0
+
+# connector
+COPY ./jcustenborder-kafka-connect-spooldir-2.0.65.zip /tmp/jcustenborder-kafka-connect-spooldir-2.0.65.zip
+RUN confluent-hub install --no-prompt /tmp/jcustenborder-kafka-connect-spooldir-2.0.65.zip
+
+# a transform can be done in the same way
+COPY ./jcustenborder-kafka-connect-transform-fix-0.1.0.1.zip /tmp/jcustenborder-kafka-connect-transform-fix-0.1.0.1.zip
+RUN confluent-hub install --no-prompt /tmp/jcustenborder-kafka-connect-transform-fix-0.1.0.1.zip
