@@ -54,61 +54,6 @@ find . -name '*.pyc' -delete
 # side note: to prevent pyc, run
 export PYTHONDONTWRITEBYTECODE=1
 
-# After a token has been reoked, updated, you may see 403 when push, you need to reset token
-# To do this , reset user name even this may not have changed. On Mac, try clean cache from keychain.
-# https://docs.github.com/en/get-started/getting-started-with-git/updating-credentials-from-the-macos-keychain
-
-# We may need this when using multiple account:
-git config --global credential.useHttpPath true
-
-
-# To change locally for just one repository
-git config credential.username "new_username"
-
-# To change globally use
-git config credential.username --global "new_username"
-
-#git graph in terminal
-git log --graph --decorate --pretty=oneline --abbrev-commit
-
-# Rebase local branch with remote branch
-# useful before merge back to remote branch
-git pull --rebase origin branch
-
-# diff without details but only files
-git diff --compact-summary gl_feed_v2..CML-11
-
-# track a new remote branch
-git fetch --all
-git checkout -b ip origin/ip
-# or full statement
-git checkout --track origin/ip
-# or for weird ones change remote to make sure origin fetches from *, not a particular branch
-[remote "origin"]
-    url = https://github.com/WERID_ONES.git
-    fetch = +refs/heads/*:refs/remotes/origin/*
-
-# stash untracked files:
-git stash -u (a_file)
-#git stash selected files
-git stash push file_list...
-
-# search for an introduced string 
-git log -S "A string"
-git log -S "A string" --since=2009.1.1 --until=2010.1.1 -- path
-
-# git tags
-# delete a tag
-git tag -d tag_name  # locally
-git push <remote> :refs/tags/tag_name # remotely
-
-# Get first 5 commits from every branch, note `tr` to replace * from the default branch
-for b in `git branch | tr '*' ' '`; do
-    echo Branch: "$b"
-    git log -n5 $br
-    echo
-done
-
 # remove files listed in a file: one on every line
 rm $(cat bad_revisions.txt)
 
@@ -138,4 +83,3 @@ echo $encoded_string | tr '_-' '/+' | base64 -d > string
 curl https://github.com/google/trillian/archive/v1.3.11.tar.gz | tar -xz
 wget -c https://github.com/google/trillian/archive/v1.3.11.tar.gz && tar -xzf v1.3.11.tar.gz
 wget -c https://github.com/google/trillian/archive/v1.3.11.tar.gz -O - | tar -xz
-
