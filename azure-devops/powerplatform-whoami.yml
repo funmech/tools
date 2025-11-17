@@ -1,0 +1,20 @@
+# Check if SPNs for environments are correct
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: PowerPlatformToolInstaller@2
+  inputs:
+    DefaultVersion: true
+- task: PowerPlatformWhoAmi@2
+  inputs:
+    authenticationType: 'PowerPlatformSPN'
+    PowerPlatformSPN: 'PowerPlatform - Dev instance'
+  displayName: "Check who am I in Dev"    
+- task: PowerPlatformWhoAmi@2
+  inputs:
+    authenticationType: 'PowerPlatformSPN'
+    PowerPlatformSPN: 'PowerPlatform - Test instance'
+  displayName: "Check who am I in Test"    

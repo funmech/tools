@@ -1,0 +1,57 @@
+# for learn or test scripts or feature of pipeline in general
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+- name: environment
+  displayName: PowerPlatform Environment for deployment
+  type: string
+  default: development
+  values:
+  - development
+  - test
+  - uat
+  - production
+
+variables:
+  - name: SolutionName
+    value: StudyLinkNotification
+
+steps:
+- script: |
+    echo "template syntax ${{ variables.UI }}"
+    echo "runtime syntax $[variables.UI]"
+    echo "macro syntax $(UI)"
+    setting="settings/$(SolutionName)/${{ parameters.environment }}.json"
+    echo "constructed file path: $setting"
+    if [ -f $setting ]; then
+      echo "found settings $setting"
+      ls -l $setting
+      find settings
+      echo "##vso[task.setvariable variable=settingJSON]$setting"
+    else
+      echo "settings is not find"
+      echo "##vso[task.setvariable variable=settingJSON]false"
+    fi
+  displayName: 'Check if there is a setting file'
+- script: echo "Will need construct --settings-file argument $(settingJSON)"
+  condition: endsWith(variables['settingJSON'], '.json')
+  displayName: "hasSettings True path"  
+- script: echo "Does not need --settings-file"
+  condition: eq(variables['settingJSON'], 'false')
+  displayName: "hasSettings False path"  
+- script: |
+    find settings
+    pac solution import help
+    if [ -d settings/$(SolutionName) ]; then
+      echo "find settings"
+      find settings
+    else
+      echo "settings is not find"
+    fi
+  displayName: 'Check settings and pac solution import help'
+- ${{ if eq(parameters.environment, 'production') }}:
+    - script: echo "You have choose to be deployed to ${{ parameters.environment }}"  
+      displayName: Deploy to ${{ parameters.environment }} instance

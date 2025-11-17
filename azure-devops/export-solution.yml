@@ -1,0 +1,69 @@
+# Use this pipeline to export a solution and set up a tracking feature branch
+# The pipeline definition provides 3 variables, ServiceConnectionName has a default value
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: Export_track_via_a_new_branch
+  steps:
+  - bash: echo "All required variables SolutionName, ServiceConnectionName and CommitMessage need to be set"; exit 1
+    condition: or(lt(length(variables['SolutionName']), 5), lt(length(variables['ServiceConnectionName']), 12), lt(length(variables['CommitMessage']), 5))
+    displayName: 'Exit if required variables are not set'
+  - checkout: self
+    persistCredentials: true
+  - bash: |
+      echo -e "Variables of current run\n\tSolutionName: $(SolutionName)"
+      echo -e "\tCommitMessage: $(CommitMessage)"
+      echo -e "\tServiceConnectionName: $(ServiceConnectionName)"
+    displayName: 'Print 3 essential variables'
+  - bash: |
+      BRANCH_NAME=$(BranchName)
+      if [ -z "$BRANCH_NAME" ]; then
+        BRANCH_NAME=$(SolutionName)
+      fi
+      echo "##vso[task.setvariable variable=BRANCH_NAME]$BRANCH_NAME"
+
+      echo "Check working space"; ls -l
+      echo "Commit changes to \"$(SolutionName)\" with message: \"$(CommitMessage)\" to git branch: \"$BRANCH_NAME\""
+      git config user.email "$BUILD_REQUESTEDFOR"
+      git config user.name $BUILD_REQUESTEDFOREMAIL
+      git config -l
+
+      git fetch origin
+      existing=`git branch -r | grep origin/$BRANCH_NAME`
+      if [ -z $existing ]; then
+        NewBranch='-c'
+      fi
+      git switch $NewBranch $BRANCH_NAME
+    displayName: 'Prepare git workspace'
+  - task: PowerPlatformToolInstaller@2
+    inputs:
+      DefaultVersion: true
+      AddToolsToPath: true
+  - task: PowerPlatformExportSolution@2
+    displayName: 'Export solution as unmanaged'
+    inputs:
+      authenticationType: PowerPlatformSPN
+      PowerPlatformSPN: '$(ServiceConnectionName)'
+      SolutionName: '$(SolutionName)'
+      SolutionOutputFile: '$(Build.ArtifactStagingDirectory)/$(SolutionName)'
+  - task: PowerPlatformExportSolution@2
+    displayName: 'Export solution as managed'
+    inputs:
+      authenticationType: PowerPlatformSPN
+      PowerPlatformSPN: '$(ServiceConnectionName)'
+      SolutionName: '$(SolutionName)'
+      SolutionOutputFile: '$(Build.ArtifactStagingDirectory)/$(SolutionName)'
+      Managed: true
+  - task: PowerPlatformUnpackSolution@2
+    displayName: 'Unpack a solution as both unmanaged and managed'
+    inputs:
+      SolutionInputFile: '$(Build.ArtifactStagingDirectory)/$(SolutionName)/$(SolutionName).zip'
+      SolutionTargetFolder: '$(Build.SourcesDirectory)/$(SolutionName)'
+      SolutionType: 'Both'
+  - bash: |
+      git add .
+      git commit -m "$(CommitMessage)" && git push origin $(BRANCH_NAME)
+    displayName: 'Commit the exported solution'

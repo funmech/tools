@@ -1,0 +1,35 @@
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - bash: echo "Both required variables SolutionName and CommitMessage need to be set"; exit 1
+    condition: or(lt(length(variables['SolutionName']), 5), lt(length(variables['CommitMessage']), 5))
+    displayName: 'Exit if required variables are not set'
+  - bash: |
+      echo -e "Variables\n\tSolutionName: $(SolutionName)"
+      echo -e "\tCommitMessage: $(CommitMessage)"
+      echo -e "\tServiceConnectionName: $(ServiceConnectionName)"
+    displayName: 'Print variables'
+  - bash: |
+      BRANCH_NAME=$(BranchName)
+      if [ -z "$BRANCH_NAME" ]; then
+        BRANCH_NAME=$(SolutionName)
+      fi
+      echo "##vso[task.setvariable variable=BRANCH_NAME]$BRANCH_NAME"
+
+      echo "Check working space"; ls -l 
+      echo "Commit changes to \"$(SolutionName)\" with message: \"$(CommitMessage)\" to git branch: \"$BRANCH_NAME\""
+    displayName: 'Confirm all 3 variables are set correctly'
+  - checkout: self
+    persistCredentials: true
+  - bash: |
+      echo "checking variable created in a previous step: $(BRANCH_NAME)"
+      git fetch origin
+      existing=`git branch -r | grep origin/$(BRANCH_NAME)`
+      if [ -z $existing ]; then
+        NewBranch='-c'
+      fi
+      git switch $NewBranch $(BRANCH_NAME)
+    displayName: 'git branch demo'
