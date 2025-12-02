@@ -10,6 +10,9 @@ lsof -Pi TCP -s tcp:listen
 # check if a tcp port is being listened
 lsof -Pi tcp:8000 -s tcp:listen
 
+# convert end of line from CRLF to LF: this is required when adding the line ends on Windows
+sed -i 's/\r$//' windows.txt
+
 # on macOS, add '' after -i
 # or brew install gnu-sed and use gsed
 sed -i '' 's/app\.services\.orms\.orm_base/\.orm_base/' *.py
@@ -26,6 +29,9 @@ sed -r '/db.ForeignKey(/{n;s/\"([\w_])\./\1hi/}' orm_bank_accounts.py
 
 # add extra at the end of line:
 (g)sed -i 's/$/*.py/' bad_revisions.txt
+
+# add content to start and end of lines with | as delimiter, not the / to avoid escaping
+sed -i 's|^|<value>|; s|$|</value>|' ids.txt
 
 # add a line with leading space escaped after a hint:
 sed '/anchor/a \  \extra: line' $f
