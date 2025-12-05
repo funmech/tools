@@ -48,3 +48,48 @@
 					    #"Changed Type"
 
 ```
+
+## Small multiples
+When dealing with data from multiple columns, measures, or even tables, Power BI’s line chart does not allow multiple measures with Legend for YoY comparison—only one measure series can be used when Legend is applied.
+To solve this, use the Small Multiples + Selector Table pattern. This avoids creating unpivoted data tables and keeps the model dynamic.
+
+Steps:
+
+- Create a calculated selector table (MeasureID, MeasureName).
+```tmdl
+Activity Selector = 
+DATATABLE(
+    "MeasureID", INTEGER,
+    "MeasureName", STRING,
+    {
+        { 1, "Inbound Call" },
+        { 2, "Outbound Call" },
+        { 3, "Chat" },
+        { 4, "Sequence Activity" }
+    }
+)
+```
+- Create a SWITCH measure mapping MeasureID → actual measures.
+```tmdl
+Selected Measure Value = 
+VAR sid = SELECTEDVALUE('Activity Selector'[MeasureID])
+RETURN
+SWITCH(
+    TRUE(),
+    sid = 1, [Total Inbound],
+    sid = 2, [Total Outbound],
+    sid = 3, [Total Chat],
+    sid = 4, [Completed Activities],
+    BLANK()
+)
+```
+- In the line chart:
+    - X-axis: Date
+    - Values (Y-axis): The SWITCH measure
+    - Small multiples: MeasureName from the selector table
+    - Legend: Year (for YoY comparison, especially with Month on X-axis)
+- Adjust formatting:
+    - Turn Shared Y-axis OFF if ranges differ (trade-off: no magnitude comparison).
+    - Sort MeasureName by MeasureID for custom order.
+
+This approach keeps the report dynamic, clean, and interactive without creating a huge unpivoted table.
