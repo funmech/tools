@@ -89,3 +89,13 @@ echo $encoded_string | tr '_-' '/+' | base64 -d > string
 curl https://github.com/google/trillian/archive/v1.3.11.tar.gz | tar -xz
 wget -c https://github.com/google/trillian/archive/v1.3.11.tar.gz && tar -xzf v1.3.11.tar.gz
 wget -c https://github.com/google/trillian/archive/v1.3.11.tar.gz -O - | tar -xz
+
+# back up important files, for example, those [profile files](./firefox-profile-files.txt) of Firefox.
+tar -czvf /backup/selected.tgz -T firefox-profile-files.txt
+
+# compression options:
+# gzip:  tar -czvf /path/to/dest/archive.tar.gz ...
+# bzip2: tar -cjvf /path/to/dest/archive.tar.bz2 ...
+# xz:    tar -cJvf /path/to/dest/archive.tar.xz ..
+
+# Use --numeric-owner when extracting archives on systems where user/group names may differ.

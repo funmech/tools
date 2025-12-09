@@ -1,0 +1,11 @@
+places.sqlite
+bookmarkbackups
+favicons.sqlite
+key4.db
+logins.json
+permissions.sqlite
+content-prefs.sqlite
+formhistory.sqlite
+cookies.sqlite
+webappsstore.sqlite
+prefs.js
