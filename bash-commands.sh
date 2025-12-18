@@ -41,6 +41,9 @@ sed '/anchor/a \  \extra: line' $f
 # [2021.09.22 09:37:00.458] The analysis id of the new analysis is "14221963".
 sed -n 's/.*new analysis is //p' output.txt | sed 's/\"//g; s/\.//'
 
+# replace content in files. Include -I if there are binary files: -rIl
+grep -rl --exclude-dir=.git "old_text" ./path | xargs sed -i 's/old_text/new_text/g'
+
 # multiline search with awk for not containing v2
 awk "/db.ForeignKey/,/column/" orm_*.py | grep -v v2
 
@@ -56,6 +59,18 @@ envsubst < template.yml | base64 | fold -w 60
 
 # https://blog.mozilla.org/webdev/2015/10/27/eradicating-those-nasty-pyc-files/
 find . -name '*.pyc' -delete
+
+# How to tell find where and what to look for:
+# 1. Skip descending into ./src/emacs, list everything else.
+# both -prune and -print are action return true, use -o (-or), which is short-circuits, to go one or another
+#   -path ./src/emacs -prune
+#   -print, or -print0 for printing file name with null character. Has the same function of -0 in xargs.
+find . -path ./src/emacs -prune -o -print
+# 2. Another example:
+find ./path -type d \( -name node_modules -o -name .git \) -prune -o \
+  -type f -name '*.js' -print0 \
+  | xargs -0 sed -i 's/old_text/new_text/g'
+
 
 # side note: to prevent pyc, run
 export PYTHONDONTWRITEBYTECODE=1
