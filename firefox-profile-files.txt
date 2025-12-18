@@ -1,5 +1,4 @@
 places.sqlite
-bookmarkbackups
 favicons.sqlite
 key4.db
 logins.json
