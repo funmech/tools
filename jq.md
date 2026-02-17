@@ -53,5 +53,37 @@ Result:
 ]
 ```
 
+## Sorting
+```json
+{
+    "changedAttributes": [
+        {
+            "logicalName": "statecode",
+            "oldValue": null,
+            "newValue": "0",
+            "newName": "Active"
+        },
+        {
+            "logicalName": "resolvebyslastatus",
+            "oldValue": null,
+            "newValue": "1",
+            "newName": "In Progress"
+        }
+    ]
+}
+```
+
+jq expression:
+```shell
+jq '.changedAttributes|=sort_by(.logicalName)' my.json
+
+# or nesting:
+# Source - https://stackoverflow.com/a/30332672
+# Posted by karlos, modified by community. See post 'Timeline' for change history
+# Retrieved 2026-02-17, License - CC BY-SA 4.0
+
+jq '.components.rows|=sort_by(.id)|.components.rows[].properties|=sort_by(.name)' file.json
+```
+
 ### Reference
 [jq cheat sheet](https://developer.zendesk.com/documentation/integration-services/developer-guide/jq-cheat-sheet/)
