@@ -53,6 +53,124 @@ Result:
 ]
 ```
 
+## Extract from an array
+Example:
+```json
+[
+    {
+        "LogicalName": "AttributePicklistValue",
+        "Id": "5968b273-e605-4ff7-8765-3f7ba1bcaf5a",
+        "Attributes": [
+            {
+                "Key": "value",
+                "Value": "11111"
+            },
+            {
+                "Key": "attributepicklistvaluerowid",
+                "Value": "8f631a00-23fc-4e8f-a998-994d7b19e8fe"
+            },
+            {
+                "Key": "DisplayName - LocalizedLabel",
+                "Value": "{\"LabelTypeCode\":2,\"LocalizedLabels\":{\"1033\":{\"LocalizedLabelId\":\"faed30b7-64e8-4999-bc17-a878a2f3f3b9\",\"LocalizedLabel\":\"Awaiting OGR assessment\",\"ComponentState\":\"Publish\"}}}"
+            }
+        ]
+    },
+    {
+        "LogicalName": "AttributePicklistValue",
+        "Id": "5968b273-e605-4ff7-8765-3f7ba1bcaf5a",
+        "Attributes": [
+            {
+                "Key": "value",
+                "Value": "2222"
+            },
+            {
+                "Key": "attributepicklistvaluerowid",
+                "Value": "8f631a00-23fc-4e8f-a998-994d7b19e8fe"
+            },
+            {
+                "Key": "DisplayName - LocalizedLabel",
+                "Value": "{\"LabelTypeCode\":2,\"LocalizedLabels\":{\"1033\":{\"LocalizedLabelId\":\"faed30b7-64e8-4999-bc17-a878a2f3f3b9\",\"LocalizedLabel\":\"Awaiting OGR assessment\",\"ComponentState\":\"Publish\"}}}"
+            }
+        ]
+    }
+]
+```
+
+### JSON array of objects { value, display }
+```shell
+jq '
+  map(
+    # Turn the Attributes [{Key,Value}...] into a normal object
+    (.Attributes | map({key: .Key, value: .Value}) | from_entries) as $a
+    | {
+        value: $a.value,
+        display: (
+          try (
+            $a["DisplayName - LocalizedLabel"]
+            | fromjson                          # parse the embedded JSON string
+            | .LocalizedLabels["1033"].LocalizedLabel
+          ) catch null
+        )
+      }
+  )
+' example.json
+```
+
+Result
+```json
+[
+  {
+    "value": 1111,
+    "display": "Incomplete application"
+  },
+  {
+    "value": 2222,
+    "display": "Submitted"
+  }
+]
+```
+
+### CSV with headers value,display
+```shell
+jq -r '
+  ["value","display"],
+  (
+    .[] 
+    | (.Attributes | map({key: .Key, value: .Value}) | from_entries) as $a
+    | [
+        $a.value,
+        (try ($a["DisplayName - LocalizedLabel"] | fromjson | .LocalizedLabels["1033"].LocalizedLabel) catch "")
+      ]
+  )
+  | @csv
+' example.json
+```
+
+Result
+```csv
+"value","display"
+1111,"Incomplete application"
+2222,"Submitted"
+```
+
+### Line‑delimited JSON (NDJSON), one row per entity
+```shell
+jq -c '
+  .[] 
+  | (.Attributes | map({key: .Key, value: .Value}) | from_entries) as $a
+  | {
+      value: $a.value,
+      display: (try ($a["DisplayName - LocalizedLabel"] | fromjson | .LocalizedLabels["1033"].LocalizedLabel) catch null)
+    }
+' example.json
+```
+
+Result:
+```json
+{"value":970740000,"display":"Incomplete application"}
+{"value":970740001,"display":"Submitted"}
+```
+
 ## Sorting
 ```json
 {
