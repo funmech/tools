@@ -1,5 +1,13 @@
 # jq
 
+## `[]`
+
+`.foo[]` means "every child value under foo". Use it to get all child objects or elements of an array.
+
+## `to_entries[]`
+Wrap user keys and their objects to `{"key": , "value": }` for further to access them by `.key` and `.value`. 
+`jq '[.content | to_entries[] | {(.key): .value.text}]' content.json`
+
 ## Extract content from nested arrays 
 Example input, for example from a HTTP response:
 ```json
@@ -152,6 +160,9 @@ Result
 1111,"Incomplete application"
 2222,"Submitted"
 ```
+
+Another example of ignoring keys and extract two fields `name` and `text` as two cells:
+`jq -r '.content[] | [.name, .text] | @csv' content.json`
 
 ### Line‑delimited JSON (NDJSON), one row per entity
 ```shell
