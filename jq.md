@@ -4,11 +4,28 @@
 
 `.foo[]` means "every child value under foo". Use it to get all child objects or elements of an array.
 
-## `to_entries[]`
-Wrap user keys and their objects to `{"key": , "value": }` for further to access them by `.key` and `.value`. 
-`jq '[.content | to_entries[] | {(.key): .value.text}]' content.json`
+## `to_entries`
+Converts keys and their objects of JSON object to named `{"key": , "value": }` for further accessing them by `.key` and `.value`.
+```shell
+# from
+	{"a": 1, "b": 2}
+# to
+	[{"key":"a", "value":1}, {"key":"b", "value":2}]
+```
 
-## Extract content from nested arrays 
+`jq '[.content | to_entries | {(.key): .value.text}]' content.json`
+
+## `from_entries`
+Converts an array of objects to a single object.
+
+```shell
+# from
+    [{"key":"a", "value":1}, {"key":"b", "value":2}]
+# to
+	{"a": 1, "b": 2}
+```
+
+## Extract content from nested arrays
 Example input, for example from a HTTP response:
 ```json
 {
@@ -49,7 +66,7 @@ Result:
 ```json
 [
     {
-        "name": "Team Name",   
+        "name": "Team Name",
         "members": [
             {
             "name": "Carolyn Lake",
@@ -138,12 +155,69 @@ Result
 ]
 ```
 
+### From two-column csv to JSON object of key-value pairs
+Example CSV data (countries.csv)
+```csv
+name,code
+Australia,882070000
+Adelie Land (France),882070001
+Afghanistan,882070002
+Aland Islands,882070003
+Albania,882070004
+```
+
+```shell
+jq -R -s 'split("\n")  | .[1:] | map(split(",")) | map({key: .[0], value: .[1]}) | from_entries' countries.csv
+```
+
+Result
+```json
+{
+  "Australia": "882070000",
+  "Adelie Land (France)": "882070001",
+  "Afghanistan": "882070002",
+  "Aland Islands": "882070003",
+  "Albania": "882070004"
+}
+```
+
+Note:
+1. `-R` (Raw input): treats the incoming file as a plain text string.
+1. `-s` (Slurp): Reads the entire file into memory as one single string, allowing you to split it by newlines (\n).
+1. `.[1:]`: if there is a head line, use this to read from line 1.
+1. `map(split(","))`: splits line by delimiter to create:
+    ```json
+    [
+        [
+            "Australia",
+            "882070000"
+        ],
+        [
+            "Adelie Land (France)",
+            "882070001"
+        ],
+        [
+            "Afghanistan",
+            "882070002"
+        ],
+        [
+            "Aland Islands",
+            "882070003"
+        ],
+        [
+            "Albania",
+            "882070004"
+        ]
+    ]
+    ```
+1. `map({key: .[0], value: .[1]})`: converts array elements to JSON object.
+
 ### CSV with headers value,display
 ```shell
 jq -r '
   ["value","display"],
   (
-    .[] 
+    .[]
     | (.Attributes | map({key: .Key, value: .Value}) | from_entries) as $a
     | [
         $a.value,
@@ -167,7 +241,7 @@ Another example of ignoring keys and extract two fields `name` and `text` as two
 ### Line‑delimited JSON (NDJSON), one row per entity
 ```shell
 jq -c '
-  .[] 
+  .[]
   | (.Attributes | map({key: .Key, value: .Value}) | from_entries) as $a
   | {
       value: $a.value,
